@@ -15,7 +15,7 @@ class UserInputDetails(Base):
     name = Column(String(100), nullable=False)
     email = Column(String(100), nullable=False)
     phone = Column(String(100), nullable=False)
-    image_url = Column(String(100), nullable=True)
+    image_url = Column(String(100), nullable=False)
     summary = Column(String(100), nullable=False)
     
 class UserAddressDetails(Base):
@@ -67,8 +67,8 @@ class UserEducationDetails(Base):
     course_name = Column(String(100), nullable=False)
     institute_name = Column(String(100), nullable=False)
     location = Column(String(100), nullable=False)
-    academic_year_start = Column(Date, nullable=False)
-    accademic_year_end = Column(Date, nullable=False)   
+    academic_year_start = Column(Date, nullable=True)
+    academic_year_end = Column(Date, nullable=True)   
     
      #defining the relationship with parent table
     job_seeker = relationship("UserInputDetails", backref=backref("education",passive_deletes=True))
@@ -78,8 +78,8 @@ class UserSkillDetails(Base):
     
     id = Column(Integer, primary_key = True)
     basic_details_id = Column(Integer, ForeignKey('basic_details.id', ondelete='CASCADE'))
-    skill_name = Column(String(100), nullable=False)
-    level = Column(String(100), nullable=False)
+    skill_name = Column(String(100), nullable=True)
+    level = Column(String(100), nullable=True)
 
      #defining the relationship with parent table
     job_seeker = relationship("UserInputDetails", backref=backref("skills",passive_deletes=True))
