@@ -3,6 +3,7 @@ from database import session
 from models import UserInputDetails, UserSkillDetails, UserSocialMediaDetails, UserWorkDetails, UserEducationDetails, UserProjectDetails, UserAddressDetails
 from typing import Any
 import json
+from litestar.config.cors import CORSConfig
 
 
 
@@ -109,24 +110,37 @@ async def show_data_by_search_field(field_val: str) -> json:
     return json_data
 
 @post("/create-new-resume")
-async def add_resume(request: Request, data: dict[str, Any]) -> str:
+async def add_resume(request: Request, data: dict[str, Any]) -> json:
+    print(data)
     '''API for creating new resume'''
     
     #Getching data from post API request from frontend using keys into a single variable.
     user_input_data = UserInputDetails(
-        id=data["basic_details"].get("id"),
+        # id=data["basic_details"].get("id"),
         name=data["basic_details"].get("name"),
         email=data["basic_details"].get("email"),
         phone=data["basic_details"].get("phone"),
         summary=data["basic_details"].get("summary"),
         image_url=data["basic_details"].get("image_url")
         )
+    flag = False
     if user_input_data:
         #Adding data into session
         session.add(user_input_data)
+        session.commit()
+        flag = True
+    # print(flag)
+    if flag:
+        print(flag)
+        all_basic_details = session.query(UserInputDetails).all()
+        records = [record.__dict__ for record in all_basic_details]
+        *_,user_record = records
+        print(user_record)
+        
        
     user_address_data = UserAddressDetails(
-        basic_details_id = data["basic_details"].get("id"),
+        # basic_details_id = data["basic_details"].get("id"),
+        basic_details_id = user_record["id"],
         address = data["location_details"].get("address"),
         street = data["location_details"].get("street"),
         city = data["location_details"].get("city"),
@@ -143,7 +157,8 @@ async def add_resume(request: Request, data: dict[str, Any]) -> str:
         set_of_skills = len(data["skills"])
         for entry in range(set_of_skills):
             user_skill_data = UserSkillDetails(
-                basic_details_id=data["basic_details"].get("id"), 
+                # basic_details_id=data["basic_details"].get("id"), 
+                basic_details_id = user_record["id"],
                 skill_name = data["skills"][entry].get("skill_name"),
                 level=data["skills"][entry].get("level")
                 )
@@ -156,7 +171,8 @@ async def add_resume(request: Request, data: dict[str, Any]) -> str:
         active_accounts = len(data["social_media"])
         for entry in range(active_accounts):
             social_media = UserSocialMediaDetails(
-            basic_details_id=data["basic_details"].get("id"),
+            # basic_details_id=data["basic_details"].get("id"),
+            basic_details_id = user_record["id"],
             network=data["social_media"][entry].get("network"), 
             user_name=data["social_media"][entry].get("user_name"), 
             url=data["social_media"][entry].get("url")
@@ -170,11 +186,14 @@ async def add_resume(request: Request, data: dict[str, Any]) -> str:
         work_history = len(data["work"])
         for entry in range(work_history):
             user_work_data = UserWorkDetails(
-                basic_details_id = data["basic_details"].get("id"),
+                # basic_details_id = data["basic_details"].get("id"),
+                basic_details_id = user_record["id"],
                 organisation = data["work"][entry].get("organisation"),
                 job_role = data["work"][entry].get("job_role"), 
                 job_location =data["work"][entry].get("job_location"),
                 key_roles = data["work"][entry].get("key_roles"),
+                # start_date = data["work"][entry].get("start_date","2000-12-12"),
+                # end_date = data["work"][entry].get("end_date","2000-12-12")
                 start_date = data["work"][entry].get("start_date"),
                 end_date = data["work"][entry].get("end_date")
                 )
@@ -188,11 +207,14 @@ async def add_resume(request: Request, data: dict[str, Any]) -> str:
         education_history = len(data["education"])
         for entry in range(education_history):
             user_education_data = UserEducationDetails(
-                basic_details_id = data["basic_details"].get("id"),
+                # basic_details_id = data["basic_details"].get("id"),
+                basic_details_id = user_record["id"],
                 qualification = data["education"][entry].get("qualification"), 
                 course_name = data["education"][entry].get("course_name"),
                 institute_name = data["education"][entry].get("institute_name"),
                 location=data["education"][entry].get("location"),
+                # academic_year_start=data["education"][entry].get("academic_year_start","2000-12-12"),
+                # academic_year_end = data["education"][entry].get("academic_year_end","2000-12-12")
                 academic_year_start=data["education"][entry].get("academic_year_start"),
                 academic_year_end = data["education"][entry].get("academic_year_end")
                 )
@@ -201,21 +223,22 @@ async def add_resume(request: Request, data: dict[str, Any]) -> str:
                 
          
     
-    if data["project_details"]:
-        number_of_projects = len(data["project_details"])
+    if data["project"]:
+        number_of_projects = len(data["project"])
         for entry in range (number_of_projects):
             user_project_data =  UserProjectDetails(
-                basic_details_id = data["basic_details"].get("id"),
-                project_title = data["project_details"][entry].get("project_title"),
-                skills_earned = data["project_details"][entry].get("skills_earned"),
-                description = data["project_details"][entry].get("description")
+                # basic_details_id = data["basic_details"].get("id"),
+                basic_details_id = user_record["id"],
+                project_title = data["project"][entry].get("project_title"),
+                skills_earned = data["project"][entry].get("skills_earned"),
+                description = data["project"][entry].get("description")
                 )
             if user_project_data:
                 session.add(user_project_data)
                 
     session.commit()   
     session.close()
-    return "Data added"
+    return data
 
 
 @delete("/delete-data/{user_id: int}")
@@ -229,60 +252,99 @@ async def delete_data(user_id: int) -> None:
         session.close()
         return None
 
-# @put("/edit-data/{user_id: int}")
-# async def edit_data(user_id: int, data: dict[str, Any]) -> str:
-#     user_input_data = session.query(UserInputDetails).filter_by(id=user_id).first()
-#     user_address_data = session.query(UserAddressDetails).filter_by(basic_details_id=user_id).first()
-#     user_social_media_data = session.query(UserSocialMediaDetails).filter_by(basic_details_id=user_id).first()
-#     user_work_data = session.query(UserWorkDetails).filter_by(basic_details_id=user_id).first()
-#     user_education_data = session.query(UserEducationDetails).filter_by(basic_details_id= user_id).first()
-#     user_skill_data = session.query(UserSkillDetails).filter_by(basic_details_id=user_id).first()
-#     user_project_data = session.query(UserProjectDetails).filter_by(basic_details_id=user_id).first()
-#     if user_input_data:
-#         user_input_data.email = data["email"]
-#         user_input_data.phone = data["phone"]
-#         user_input_data.image_url = data["image_url"]
-#         user_input_data.summary = data["summary"]
-#     if user_address_data:
-#         user_address_data.address = data["address"]
-#         user_address_data.street = data["street"]
-#         user_address_data.city = data["city"]
-#         user_address_data.country = data["country"]
-#         user_address_data.pincode = data["pincode"]
-#     if user_social_media_data:
-#         user_social_media_data.network = data["network"]
-#         user_social_media_data.user_name = data["user_name"]
-#         user_social_media_data.url = data["url"]
-#     if user_work_data:
-#         user_work_data.organisation = data["organisation"]
-#         user_work_data.job_role = data["job_role"]
-#         user_work_data.job_location = data["job_location"]
-#         user_work_data.key_roles = data["key_roles"]
-#         user_work_data.start_date = data["start_date"]
-#         user_work_data.end_date = data["end_date"]
-#     if user_education_data:
-#         user_education_data.qualification = data["qualification"]
-#         user_education_data.course_name = data["course_name"]
-#         user_education_data.institute_name = data["institute_name"]
-#         user_education_data.location = data["location"]
-#         user_education_data.academic_year_start = data["academic_year_start"]
-#         user_education_data.accademic_year_end = data["accademic_year_end"]
-#     if user_skill_data:
-#         user_skill_data.skill_name = data["skill_name"]
-#         user_skill_data.level = data["level"]
-#     if user_project_data:
-#         user_project_data.project_title = data["project_title"]
-#         user_project_data.skills_earned = data["skills_earned"]
-#         user_project_data.description = data["description"]
-#     session.add(user_input_data)
-#     session.add(user_address_data)
-#     session.add(user_social_media_data)
-#     session.add(user_work_data)
-#     session.add(user_education_data)
-#     session.add(user_skill_data)
-#     session.add(user_project_data)
-#     session.commit()
-#     session.close()
-#     return "Updated"
+@put("/edit-resume/{user_id: int}")
+async def edit_data(user_id: int, data: dict[str, Any]) -> str:
+    user_input_data = session.query(UserInputDetails).filter_by(id=user_id).first()
+    if user_input_data:
+        record = user_input_data
+        user_data = data.get("basic_details")
+        record.email = user_data.get("email")
+        record.phone = user_data.get("phone")
+        record.image_url =user_data.get("image_url")
+        record.summary = user_data.get("summary")
+        session.add(record)
+        # print(record.__dict__)
+    user_address_data = session.query(UserAddressDetails).filter_by(basic_details_id=user_id).first()
+    if user_address_data:
+        record = user_address_data
+        address_data = data.get("location_details")
+        record.address = address_data.get("address")
+        record.street = address_data.get("street")
+        record.city = address_data.get("city")
+        record.country = address_data.get("country")
+        record.pincode = address_data.get("pincode")
+        session.add(user_address_data)
+        # print(user_address_data.__dict__)
+        
+    user_education_data = session.query(UserEducationDetails).filter_by(basic_details_id= user_id).all()
+    if user_education_data:
+        count = 0
+        for element in user_education_data:
+            education_data = data.get("education")[count]
+            element.qualification = education_data.get("qualification")
+            element.course_name = education_data.get("course_name")
+            element.institute_name = education_data.get("institute_name")
+            element.location = education_data.get("location")
+            element.academic_year_start = education_data.get("academic_year_start")
+            element.academic_year_end = education_data.get("accademic_year_end")
+            session.add(element)
+            count += 1
+            # print(entry)
+    user_social_media_data = session.query(UserSocialMediaDetails).filter_by(basic_details_id=user_id).all()
+    if user_social_media_data:
+        count = 0
+        for element in user_social_media_data:
+            social_media_data = data.get("social_media")[count]
+            element.network = social_media_data.get("network")
+            element.user_name = social_media_data.get("user_name")
+            element.url = social_media_data.get("url")
+            session.add(element)
+            count += 1
+            # print(entry)
+    user_work_data = session.query(UserWorkDetails).filter_by(basic_details_id=user_id).all()
+    if user_work_data:
+        count = 0
+        for element in user_work_data:
+            work_data = data.get("work")[count]
+            element.organisation = work_data.get("organisation")
+            element.job_role = work_data.get("job_role")
+            element.job_location = work_data.get("job_location")
+            element.key_roles = work_data.get("key_roles")
+            element.start_date = work_data.get("start_date")
+            element.end_date = work_data.get("end_date")
+            session.add(element)
+            count += 1
+            # print(entry)
+    
+    user_skill_data = session.query(UserSkillDetails).filter_by(basic_details_id=user_id).all()
+    if user_skill_data:
+        count = 0
+        for element in user_skill_data:
+            skill_data = data.get("skills")[count]
+            element.skill_name = skill_data.get("skill_name")
+            element.level = skill_data.get("level")
+            session.add(element)
+            count += 1
+            # print(entry)
+    user_project_data = session.query(UserProjectDetails).filter_by(basic_details_id=user_id).all()
+    if user_project_data:
+        count = 0
+        for element in user_project_data:
+            project_data =data.get("project_details")[count]
+            element.project_title = project_data.get("project_title")
+            element.skills_earned = project_data.get("skills_earned")
+            element.description = project_data.get("description")
+            session.add(element)
+            count += 1
+            # print(entry)
+    
+    session.commit()
+    session.close()
+    return "Updated"
 
-app = Litestar([show_all_data, add_resume, delete_data, show_resume_data_by_id, show_data_by_search_field])
+
+cors_config = CORSConfig(
+    allow_origins=["*"]
+)
+
+app = Litestar([show_all_data, edit_data, add_resume, delete_data, show_resume_data_by_id, show_data_by_search_field], cors_config=cors_config, debug=True)
