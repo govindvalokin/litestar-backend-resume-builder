@@ -59,6 +59,19 @@ async def show_all_data() -> json:
         json_data = json.dumps(all_records)
     return json_data
 
+@get("/filter-resumes/{country_value: str}")
+async def show_resume_data_by_country(country_value: str) -> json:
+    resume_dict = {}
+    resume_data = session.query(UserAddressDetails).filter_by(country=country_value).all()
+    for entry in resume_data:    
+        entry_id = entry.__dict__.get("basic_details_id")
+        resume_basic_data = session.query(UserInputDetails).filter_by(id=entry_id).first().__dict__
+        resume_basic_data.pop("_sa_instance_state", None)
+        resume_dict[entry_id]=resume_basic_data   
+    # print(resume_dict) 
+    json_data = json.dumps(resume_dict)
+    return json_data
+
 @get("/resume/{field_id: int}")
 async def show_resume_data_by_id(field_id: int) -> json:
     '''API to display resume details based on id'''
@@ -129,17 +142,17 @@ async def add_resume(request: Request, data: dict[str, Any]) -> json:
         session.add(user_input_data)
         session.commit()
         flag = True
-    # print(flag)
+    # Fetching the last entered basic_details
     if flag:
         print(flag)
         all_basic_details = session.query(UserInputDetails).all()
         records = [record.__dict__ for record in all_basic_details]
+        # Fetching last user_record
         *_,user_record = records
         print(user_record)
         
-       
+    #Posting address data   
     user_address_data = UserAddressDetails(
-        # basic_details_id = data["basic_details"].get("id"),
         basic_details_id = user_record["id"],
         address = data["location_details"].get("address"),
         street = data["location_details"].get("street"),
@@ -147,12 +160,12 @@ async def add_resume(request: Request, data: dict[str, Any]) -> json:
         country = data["location_details"].get("country"),
         pincode = data["location_details"].get("pincode")
         )
-    
+    #Storing into session
     if user_address_data:
         session.add(user_address_data)
         
         
-        
+    #Posting Skills    
     if data["skills"]:
         set_of_skills = len(data["skills"])
         for entry in range(set_of_skills):
@@ -166,7 +179,7 @@ async def add_resume(request: Request, data: dict[str, Any]) -> json:
                 session.add(user_skill_data)   
                 
         
-        
+    #Posting social_media data    
     if data["social_media"]:
         active_accounts = len(data["social_media"])
         for entry in range(active_accounts):
@@ -181,7 +194,7 @@ async def add_resume(request: Request, data: dict[str, Any]) -> json:
                 session.add(social_media)
                 
     
-        
+    # Posting work data    
     if data["work"]:
         work_history = len(data["work"])
         for entry in range(work_history):
@@ -202,7 +215,7 @@ async def add_resume(request: Request, data: dict[str, Any]) -> json:
                 
 
     
-    
+    #Posting education data
     if data["education"]:
         education_history = len(data["education"])
         for entry in range(education_history):
@@ -222,7 +235,7 @@ async def add_resume(request: Request, data: dict[str, Any]) -> json:
                 session.add(user_education_data)  
                 
          
-    
+    #Posting project data
     if data["project"]:
         number_of_projects = len(data["project"])
         for entry in range (number_of_projects):
@@ -235,7 +248,7 @@ async def add_resume(request: Request, data: dict[str, Any]) -> json:
                 )
             if user_project_data:
                 session.add(user_project_data)
-                
+    #Reflecting changes into database            
     session.commit()   
     session.close()
     return data
@@ -254,16 +267,17 @@ async def delete_data(user_id: int) -> None:
 
 @put("/edit-resume/{user_id: int}")
 async def edit_data(user_id: int, data: dict[str, Any]) -> str:
+    '''API for updating the existing records'''
     user_input_data = session.query(UserInputDetails).filter_by(id=user_id).first()
     if user_input_data:
         record = user_input_data
-        user_data = data.get("basic_details")
+        user_data = data.get("basic_details") # collecting details using key
         record.email = user_data.get("email")
         record.phone = user_data.get("phone")
         record.image_url =user_data.get("image_url")
         record.summary = user_data.get("summary")
         session.add(record)
-        # print(record.__dict__)
+        
     user_address_data = session.query(UserAddressDetails).filter_by(basic_details_id=user_id).first()
     if user_address_data:
         record = user_address_data
@@ -274,7 +288,7 @@ async def edit_data(user_id: int, data: dict[str, Any]) -> str:
         record.country = address_data.get("country")
         record.pincode = address_data.get("pincode")
         session.add(user_address_data)
-        # print(user_address_data.__dict__)
+        
         
     user_education_data = session.query(UserEducationDetails).filter_by(basic_details_id= user_id).all()
     if user_education_data:
@@ -289,7 +303,7 @@ async def edit_data(user_id: int, data: dict[str, Any]) -> str:
             element.academic_year_end = education_data.get("accademic_year_end")
             session.add(element)
             count += 1
-            # print(entry)
+            
     user_social_media_data = session.query(UserSocialMediaDetails).filter_by(basic_details_id=user_id).all()
     if user_social_media_data:
         count = 0
@@ -300,7 +314,7 @@ async def edit_data(user_id: int, data: dict[str, Any]) -> str:
             element.url = social_media_data.get("url")
             session.add(element)
             count += 1
-            # print(entry)
+            
     user_work_data = session.query(UserWorkDetails).filter_by(basic_details_id=user_id).all()
     if user_work_data:
         count = 0
@@ -314,7 +328,7 @@ async def edit_data(user_id: int, data: dict[str, Any]) -> str:
             element.end_date = work_data.get("end_date")
             session.add(element)
             count += 1
-            # print(entry)
+            
     
     user_skill_data = session.query(UserSkillDetails).filter_by(basic_details_id=user_id).all()
     if user_skill_data:
@@ -325,7 +339,7 @@ async def edit_data(user_id: int, data: dict[str, Any]) -> str:
             element.level = skill_data.get("level")
             session.add(element)
             count += 1
-            # print(entry)
+            
     user_project_data = session.query(UserProjectDetails).filter_by(basic_details_id=user_id).all()
     if user_project_data:
         count = 0
@@ -336,15 +350,16 @@ async def edit_data(user_id: int, data: dict[str, Any]) -> str:
             element.description = project_data.get("description")
             session.add(element)
             count += 1
-            # print(entry)
-    
+            
+    #Reflecting changes into database
     session.commit()
     session.close()
     return "Updated"
 
-
+#For API, defining the exact origins from where (frontend ip address) backend can receive data.
 cors_config = CORSConfig(
     allow_origins=["*"]
 )
 
-app = Litestar([show_all_data, edit_data, add_resume, delete_data, show_resume_data_by_id, show_data_by_search_field], cors_config=cors_config, debug=True)
+#Declaring functions in litestar app
+app = Litestar([show_all_data, edit_data, add_resume, delete_data, show_resume_data_by_id, show_data_by_search_field, show_resume_data_by_country], cors_config=cors_config, debug=True)
