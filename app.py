@@ -266,12 +266,14 @@ async def delete_data(user_id: int) -> None:
         return None
 
 @put("/edit-resume/{user_id: int}")
-async def edit_data(user_id: int, data: dict[str, Any]) -> str:
+async def edit_data(user_id: int, data: dict[str, Any]) -> json:
+    print(data)
     '''API for updating the existing records'''
     user_input_data = session.query(UserInputDetails).filter_by(id=user_id).first()
     if user_input_data:
         record = user_input_data
         user_data = data.get("basic_details") # collecting details using key
+        record.name = user_data.get("name")
         record.email = user_data.get("email")
         record.phone = user_data.get("phone")
         record.image_url =user_data.get("image_url")
@@ -344,7 +346,7 @@ async def edit_data(user_id: int, data: dict[str, Any]) -> str:
     if user_project_data:
         count = 0
         for element in user_project_data:
-            project_data =data.get("project_details")[count]
+            project_data =data.get("project")[count]
             element.project_title = project_data.get("project_title")
             element.skills_earned = project_data.get("skills_earned")
             element.description = project_data.get("description")
@@ -354,7 +356,7 @@ async def edit_data(user_id: int, data: dict[str, Any]) -> str:
     #Reflecting changes into database
     session.commit()
     session.close()
-    return "Updated"
+    return json.dumps("Updated")
 
 #For API, defining the exact origins from where (frontend ip address) backend can receive data.
 cors_config = CORSConfig(
