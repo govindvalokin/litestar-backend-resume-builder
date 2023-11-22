@@ -122,9 +122,23 @@ async def show_data_by_search_field(field_val: str) -> json:
     json_data = json.dumps(data)
     return json_data
 
+@get("/search-resume-all/{field_val: str}", name="search_all_resume_by_field")
+async def show_all_data_by_search_field(field_val: str) -> json:
+    resume_dict = {}
+    resume_data = session.query(UserInputDetails).filter_by(email=field_val).all()
+    for entry in resume_data:
+        entry_id = entry.__dict__.get("id")    
+        entry.__dict__.pop("_sa_instance_state", None)
+        resume_dict[entry_id]=entry.__dict__
+    json_data =json.dumps(resume_dict)
+    return json_data
+
+
+
+
 @post("/create-new-resume")
 async def add_resume(request: Request, data: dict[str, Any]) -> json:
-    print(data)
+    
     '''API for creating new resume'''
     
     #Getching data from post API request from frontend using keys into a single variable.
@@ -364,4 +378,4 @@ cors_config = CORSConfig(
 )
 
 #Declaring functions in litestar app
-app = Litestar([show_all_data, edit_data, add_resume, delete_data, show_resume_data_by_id, show_data_by_search_field, show_resume_data_by_country], cors_config=cors_config, debug=True)
+app = Litestar([show_all_data, edit_data, add_resume, delete_data, show_resume_data_by_id, show_data_by_search_field, show_resume_data_by_country, show_all_data_by_search_field], cors_config=cors_config, debug=True)
