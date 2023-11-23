@@ -25,7 +25,6 @@ def send_email(data):
     {data["basic_details"]["summary"]}
     '''
     message = f'Subject: {subject}\n\n{body}'
-    
     server.sendmail(sender,recipient,message)
     print("mail sent")
     
@@ -288,8 +287,8 @@ async def add_resume(request: Request, data: dict[str, Any]) -> json:
     #Reflecting changes into database            
     session.commit()
     #calling email function
-    send_email(data)
     session.close()
+    send_email(data)
     return data
 
 
