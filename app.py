@@ -5,7 +5,16 @@ from typing import Any
 import json
 from litestar.config.cors import CORSConfig
 
+import smtplib
+server = smtplib.SMTP('smtp.gmail.com',587)
+server.starttls()
 
+# Function for sending_email
+def send_email():
+    server.login('govindve.mec@gmail.com','lpie qlev vtlv rdpq') 
+    server.sendmail('govindve.mec@gmail.com','govindpurachery@gmail.com','This is a test mail')
+    print("mail sent")
+    
 
  #passing  all records of a single user or one row or one record
  
@@ -263,7 +272,9 @@ async def add_resume(request: Request, data: dict[str, Any]) -> json:
             if user_project_data:
                 session.add(user_project_data)
     #Reflecting changes into database            
-    session.commit()   
+    session.commit()
+    #calling email function
+    send_email()
     session.close()
     return data
 
