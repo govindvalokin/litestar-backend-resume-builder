@@ -12,7 +12,13 @@ server.starttls()
 # Function for sending_email
 def send_email():
     server.login('govindve.mec@gmail.com','lpie qlev vtlv rdpq') 
-    server.sendmail('govindve.mec@gmail.com','govindpurachery@gmail.com','This is a test mail')
+    sender = 'govindve.mec@gmail.com'
+    recipient = 'govindpurachery@gmail.com'
+    subject = 'Resume Builder'
+    body = 'New Resume is created'
+    message = f'Subject: {subject}\n\n{body}'
+    
+    server.sendmail(sender,recipient,message)
     print("mail sent")
     
 
