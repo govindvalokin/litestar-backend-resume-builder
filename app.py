@@ -10,12 +10,20 @@ server = smtplib.SMTP('smtp.gmail.com',587)
 server.starttls()
 
 # Function for sending_email
-def send_email():
+def send_email(data):
     server.login('govindve.mec@gmail.com','lpie qlev vtlv rdpq') 
     sender = 'govindve.mec@gmail.com'
     recipient = 'govindpurachery@gmail.com'
     subject = 'Resume Builder'
-    body = 'New Resume is created'
+    body = f'''
+    Hello,
+    New resume created with following details:,
+    {data["basic_details"]["name"]},
+    {data["basic_details"]["email"]},
+    {data["basic_details"]["phone"]},
+    {data["basic_details"]["image_url"]},
+    {data["basic_details"]["summary"]}
+    '''
     message = f'Subject: {subject}\n\n{body}'
     
     server.sendmail(sender,recipient,message)
@@ -280,7 +288,7 @@ async def add_resume(request: Request, data: dict[str, Any]) -> json:
     #Reflecting changes into database            
     session.commit()
     #calling email function
-    send_email()
+    send_email(data)
     session.close()
     return data
 
