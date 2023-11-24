@@ -1,19 +1,22 @@
 from litestar import Litestar, get, post, Request, delete, put
 from database import session
 from models import UserInputDetails, UserSkillDetails, UserSocialMediaDetails, UserWorkDetails, UserEducationDetails, UserProjectDetails, UserAddressDetails
+#refer any type of data can be accepted, 
 from typing import Any
 import json
 from litestar.config.cors import CORSConfig
 
 import smtplib
+# SMTP address and email port address
 server = smtplib.SMTP('smtp.gmail.com',587)
+#To establish a secure connection using transport layer security(tls) 
 server.starttls()
 
 # Function for sending_email
 def send_email(data):
     server.login('govindve.mec@gmail.com','lpie qlev vtlv rdpq') 
     sender = 'govindve.mec@gmail.com'
-    recipient = 'govindpurachery@gmail.com'
+    recipient = 'govindv@alokin.in'
     subject = 'Resume Builder'
     body = f'''
     Hello,
@@ -165,7 +168,7 @@ async def add_resume(request: Request, data: dict[str, Any]) -> json:
     
     #Getching data from post API request from frontend using keys into a single variable.
     user_input_data = UserInputDetails(
-        # id=data["basic_details"].get("id"),
+        
         name=data["basic_details"].get("name"),
         email=data["basic_details"].get("email"),
         phone=data["basic_details"].get("phone"),
@@ -402,4 +405,5 @@ cors_config = CORSConfig(
 )
 
 #Declaring functions in litestar app
+# app is an instance of Litestar class , we are passing functions as a list and sending it into roothandler as a parameter
 app = Litestar([show_all_data, edit_data, add_resume, delete_data, show_resume_data_by_id, show_data_by_search_field, show_resume_data_by_country, show_all_data_by_search_field], cors_config=cors_config, debug=True)

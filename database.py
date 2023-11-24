@@ -7,6 +7,9 @@ from sqlalchemy.orm import sessionmaker
 engine = create_engine("postgresql://postgres:123456789@127.0.0.1:5432/resume_builder")
 
 # Creating session object to interact with DB or manage transaction
-Session = sessionmaker(bind=engine)
+Session = sessionmaker(bind=engine) 
+#sessionmaker is a set of functions and here we pass the argument.storing into a variable.Session is just a variable
 # Creating session instance
-session = Session()
+session = Session() 
+# Session is a wrapper function and here we call an instance
+#wrapper function is a decorator, contain function inside function
