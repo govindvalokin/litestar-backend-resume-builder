@@ -8,12 +8,16 @@ from litestar.config.cors import CORSConfig
 
 import smtplib
 # SMTP address and email port address
-server = smtplib.SMTP('smtp.gmail.com',587)
+# server = smtplib.SMTP('smtp.gmail.com',587)
 #To establish a secure connection using transport layer security(tls) 
-server.starttls()
+# server.starttls()
 
 # Function for sending_email
 def send_email(data):
+    # SMTP address and email port address
+    server = smtplib.SMTP('smtp.gmail.com',587)
+    #To establish a secure connection using transport layer security(tls) 
+    server.starttls()
     server.login('govindve.mec@gmail.com','lpie qlev vtlv rdpq') 
     sender = 'govindve.mec@gmail.com'
     recipient = 'govindv@alokin.in'
