@@ -67,8 +67,8 @@ class UserEducationDetails(Base):
     course_name = Column(String(100), nullable=False)
     institute_name = Column(String(100), nullable=False)
     location = Column(String(100), nullable=False)
-    academic_year_start = Column(Date, nullable=True)
-    academic_year_end = Column(Date, nullable=True)   
+    academic_year_start = Column(Date, nullable=False)
+    academic_year_end = Column(Date, nullable=False)   
     
      #defining the relationship with parent table
     job_seeker = relationship("UserInputDetails", backref=backref("education",passive_deletes=True))

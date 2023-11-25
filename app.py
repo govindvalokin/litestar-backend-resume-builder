@@ -237,20 +237,30 @@ async def add_resume(request: Request, data: dict[str, Any]) -> json:
     if data["work"]:
         work_history = len(data["work"])
         for entry in range(work_history):
-            user_work_data = UserWorkDetails(
-                # basic_details_id = data["basic_details"].get("id"),
-                basic_details_id = user_record["id"],
-                organisation = data["work"][entry].get("organisation"),
-                job_role = data["work"][entry].get("job_role"), 
-                job_location =data["work"][entry].get("job_location"),
-                key_roles = data["work"][entry].get("key_roles"),
-                # start_date = data["work"][entry].get("start_date","2000-12-12"),
-                # end_date = data["work"][entry].get("end_date","2000-12-12")
-                start_date = data["work"][entry].get("start_date"),
-                end_date = data["work"][entry].get("end_date")
-                )
-            if user_work_data:
-                session.add(user_work_data)
+            if(data["work"][entry].get("start_date") != "" and data["work"][entry].get("end_date") != ""):
+                user_work_data = UserWorkDetails(
+                    # basic_details_id = data["basic_details"].get("id"),
+                    basic_details_id = user_record["id"],
+                    organisation = data["work"][entry].get("organisation"),
+                    job_role = data["work"][entry].get("job_role"), 
+                    job_location =data["work"][entry].get("job_location"),
+                    key_roles = data["work"][entry].get("key_roles"),
+                    start_date = data["work"][entry].get("start_date"),
+                    end_date = data["work"][entry].get("end_date")
+                    )
+                if user_work_data:
+                    session.add(user_work_data)
+            else:
+                user_work_data = UserWorkDetails(
+                    # basic_details_id = data["basic_details"].get("id"),
+                    basic_details_id = user_record["id"],
+                    organisation = data["work"][entry].get("organisation"),
+                    job_role = data["work"][entry].get("job_role"), 
+                    job_location =data["work"][entry].get("job_location"),
+                    key_roles = data["work"][entry].get("key_roles"),
+                    )
+                if user_work_data:
+                    session.add(user_work_data)
                 
 
     
@@ -343,7 +353,7 @@ async def edit_data(user_id: int, data: dict[str, Any]) -> json:
             element.institute_name = education_data.get("institute_name")
             element.location = education_data.get("location")
             element.academic_year_start = education_data.get("academic_year_start")
-            element.academic_year_end = education_data.get("accademic_year_end")
+            element.academic_year_end = education_data.get("academic_year_end")
             session.add(element)
             count += 1
             
@@ -363,15 +373,24 @@ async def edit_data(user_id: int, data: dict[str, Any]) -> json:
         count = 0
         for element in user_work_data:
             work_data = data.get("work")[count]
-            element.organisation = work_data.get("organisation")
-            element.job_role = work_data.get("job_role")
-            element.job_location = work_data.get("job_location")
-            element.key_roles = work_data.get("key_roles")
-            element.start_date = work_data.get("start_date")
-            element.end_date = work_data.get("end_date")
-            session.add(element)
-            count += 1
-            
+            if(work_data.get("start_date") == "None" and work_data.get("end_date") == "None"):
+                element.organisation = work_data.get("organisation")
+                element.job_role = work_data.get("job_role")
+                element.job_location = work_data.get("job_location")
+                element.key_roles = work_data.get("key_roles")
+                # element.start_date = work_data.get("start_date")
+                # element.end_date = work_data.get("end_date")
+                session.add(element)
+                count += 1
+            else:
+                element.organisation = work_data.get("organisation")
+                element.job_role = work_data.get("job_role")
+                element.job_location = work_data.get("job_location")
+                element.key_roles = work_data.get("key_roles")
+                element.start_date = work_data.get("start_date")
+                element.end_date = work_data.get("end_date")
+                session.add(element)
+                count += 1
     
     user_skill_data = session.query(UserSkillDetails).filter_by(basic_details_id=user_id).all()
     if user_skill_data:
