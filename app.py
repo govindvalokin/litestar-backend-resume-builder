@@ -7,10 +7,7 @@ import json
 from litestar.config.cors import CORSConfig
 
 import smtplib
-# SMTP address and email port address
-# server = smtplib.SMTP('smtp.gmail.com',587)
-#To establish a secure connection using transport layer security(tls) 
-# server.starttls()
+
 
 # Function for sending_email
 def send_email(data):
@@ -24,7 +21,7 @@ def send_email(data):
     subject = 'Resume Builder'
     body = f'''
     Hello,
-    New resume created with following details:,
+    New resume created with following details:
     {data["basic_details"]["name"]},
     {data["basic_details"]["email"]},
     {data["basic_details"]["phone"]},
@@ -171,8 +168,7 @@ async def add_resume(request: Request, data: dict[str, Any]) -> json:
     '''API for creating new resume'''
     
     #Getching data from post API request from frontend using keys into a single variable.
-    user_input_data = UserInputDetails(
-        
+    user_input_data = UserInputDetails(    
         name=data["basic_details"].get("name"),
         email=data["basic_details"].get("email"),
         phone=data["basic_details"].get("phone"),
@@ -187,12 +183,12 @@ async def add_resume(request: Request, data: dict[str, Any]) -> json:
         flag = True
     # Fetching the last entered basic_details
     if flag:
-        print(flag)
         all_basic_details = session.query(UserInputDetails).all()
+        #creating a list of dictionaries
         records = [record.__dict__ for record in all_basic_details]
         # Fetching last user_record
         *_,user_record = records
-        print(user_record)
+        
         
     #Posting address data   
     user_address_data = UserAddressDetails(
@@ -301,6 +297,7 @@ async def add_resume(request: Request, data: dict[str, Any]) -> json:
                 )
             if user_project_data:
                 session.add(user_project_data)
+                
     #Reflecting changes into database            
     session.commit()
     #calling email function
@@ -382,8 +379,6 @@ async def edit_data(user_id: int, data: dict[str, Any]) -> json:
                 element.job_role = work_data.get("job_role")
                 element.job_location = work_data.get("job_location")
                 element.key_roles = work_data.get("key_roles")
-                # element.start_date = work_data.get("start_date")
-                # element.end_date = work_data.get("end_date")
                 session.add(element)
                 count += 1
             else:
@@ -422,11 +417,26 @@ async def edit_data(user_id: int, data: dict[str, Any]) -> json:
     session.close()
     return json.dumps("Updated")
 
-#For API, defining the exact origins from where (frontend ip address) backend can receive data.
+'''For API, defining the exact origins from where (frontend ip address) backend can receive data.
+cross origin resource sharing'''
 cors_config = CORSConfig(
-    allow_origins=["*"]
-)
+            allow_origins=["*"]
+        )
 
-#Declaring functions in litestar app
-# app is an instance of Litestar class , we are passing functions as a list and sending it into roothandler as a parameter
-app = Litestar([show_all_data, edit_data, add_resume, delete_data, show_resume_data_by_id, show_data_by_search_field, show_resume_data_by_country, show_all_data_by_search_field], cors_config=cors_config, debug=True)
+''' Declaring functions in litestar app
+ app is an instance of Litestar class 
+ we are passing functions as a list and sending it into roothandler as a parameter'''
+app = Litestar(
+        [
+            show_all_data,
+            edit_data,
+            add_resume,
+            delete_data,
+            show_resume_data_by_id,
+            show_data_by_search_field,
+            show_resume_data_by_country,
+            show_all_data_by_search_field
+        ], 
+        cors_config=cors_config,
+        debug=True
+    )
